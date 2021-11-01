@@ -13,7 +13,6 @@ import (
 )
 
 func snipeCommand(targetName string, offset float64) {
-	color.Printf(genHeader())
 	if !fileExists("accounts.txt") {
 		_, err := os.Create("accounts.txt")
 		if err != nil {
@@ -81,7 +80,7 @@ func snipeCommand(targetName string, offset float64) {
 		return
 	}
 
-	logInfo("Sniping %v at %v\n", targetName, droptime.Format("2006/01/02 15:04:05"))
+	logInfo("Sniping %v at %v with %vms offset\n", targetName, droptime.Format("2006/01/02 15:04:05"),offset)
 
 	time.Sleep(time.Until(droptime.Add(-time.Minute * time.Duration(config.Accounts.StartAuth)))) // sleep until 8 hours before droptime
 
@@ -218,7 +217,27 @@ func snipeCommand(targetName string, offset float64) {
 	logFile.WriteString(strings.Join(logsSlice, "\n"))
 
 }
+func autoSnipeCommand(offset float64){
+	for {
+		name, err := getNext3c()   
+		if err != nil {
+			logFatal("Failed to retrieve name: %v",err)
+		}
+		if offset == -10000 {
+			var offsetStr string
+			var offsetErr error
 
+			for offsetStr == "" || offsetErr != nil {
+				offsetStr = userInput("offset")
+				offset, offsetErr = strconv.ParseFloat(offsetStr, 64)
+				if offsetErr != nil {
+					logErr("%v is not a valid number", offsetStr)
+				}
+			}
+		}
+		snipeCommand(name,offset)
+	}
+}
 func pingCommand() {
 	logInfo("Coming soon™")
 }
